@@ -2,37 +2,35 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-
-
 [RequireComponent(typeof(RectTransform))]
 public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] private Canvas rootCanvas;
+
     private SlotView currentSlot;
     private SlotView previousSlot;
-    private ItemView itemView;
-
-
 
     private RectTransform rect;
     private CanvasGroup canvasGroup;
     private Transform originalParent;
     private Vector2 originalAnchoredPos;
 
+    private ItemView itemView;
+
     private void Awake()
     {
         rect = GetComponent<RectTransform>();
-        itemView = GetComponent<ItemView>();
-
 
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
 
+        itemView = GetComponent<ItemView>();
+
         if (rootCanvas == null)
             rootCanvas = GetComponentInParent<Canvas>();
 
-        if (currentSlot == null)
-            currentSlot = GetComponentInParent<SlotView>();
+        // چون آیتم داخل Cell است، Slot را از والدهای بالا پیدا می‌کند
+        currentSlot = GetComponentInParent<SlotView>();
     }
 
     public void SetCurrentSlot(SlotView slot)
@@ -42,20 +40,21 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        originalParent = transform.parent;
-        originalAnchoredPos = rect.anchoredPosition;
+        originalParent = transform.parent;          // معمولاً Cell
+        originalAnchoredPos = rect.anchoredPosition; // معمولاً صفر
 
-        // ✅ همینجا آیتم را از اسلات فعلی حذف کن تا لیست‌ها دقیق بمانند
         previousSlot = currentSlot;
-        if (currentSlot != null)
-            currentSlot.RemoveItem(itemView);
 
-        // می‌بریم زیر Canvas برای اینکه روی همه چیز بیاد
+        // ✅ همینجا از Slot قبلی خارجش کن (برای همگام بودن لیست‌ها)
+        if (previousSlot != null)
+            previousSlot.RemoveItem(itemView);
+
+        // آیتم را ببر زیر Canvas
         transform.SetParent(rootCanvas.transform, true);
 
+        // هنگام Raycast برای Drop، خود آیتم مزاحم نشود
         canvasGroup.blocksRaycasts = false;
     }
-
 
     public void OnDrag(PointerEventData eventData)
     {
@@ -64,33 +63,31 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        // ✅ اول مقصد رو پیدا کن در حالی که blocksRaycasts هنوز false است
-        SlotView targetSlot = GetSlotUnderPointer(eventData);
+        // ✅ اول هدف را پیدا کن در حالی که blocksRaycasts هنوز false است
+        var targetSlot = GetSlotUnderPointer(eventData);
 
-        // ✅ بعدش Raycast آیتم رو روشن کن
+        // بعد Raycast را روشن کن
         canvasGroup.blocksRaycasts = true;
 
+        // اگر مقصد معتبر و ظرفیت داشت
         if (targetSlot != null && targetSlot.HasSpace)
         {
             targetSlot.TryAddItem(itemView);
             currentSlot = targetSlot;
-
-            transform.SetParent(targetSlot.transform, true);
             targetSlot.ArrangeItems();
         }
         else
         {
-            // نامعتبر → برگرد به اسلات قبلی
+            // نامعتبر -> برگرد به Slot قبلی
             if (previousSlot != null)
             {
                 previousSlot.TryAddItem(itemView);
                 currentSlot = previousSlot;
-
-                transform.SetParent(previousSlot.transform, true);
                 previousSlot.ArrangeItems();
             }
             else
             {
+                // حالت نادر: اگر Slot قبلی نداشت
                 transform.SetParent(originalParent, true);
                 rect.anchoredPosition = originalAnchoredPos;
             }
@@ -99,8 +96,6 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         previousSlot = null;
     }
 
-
-
     private SlotView GetSlotUnderPointer(PointerEventData eventData)
     {
         var results = new List<RaycastResult>();
@@ -108,7 +103,7 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         foreach (var r in results)
         {
-            // ✅ خود آیتمی که داریم می‌کشیم رو نادیده بگیر
+            // خود آیتم و بچه‌هاش را ignore کن
             if (r.gameObject == gameObject || r.gameObject.transform.IsChildOf(transform))
                 continue;
 
@@ -119,9 +114,4 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         return null;
     }
-
-
-
-
-
 }

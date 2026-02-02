@@ -4,21 +4,58 @@ using UnityEngine;
 public class SlotView : MonoBehaviour
 {
     [SerializeField] private int capacity = 3;
-    [SerializeField] private float offset = 35f;
 
+    // Cell های داخل Slot (بچه‌های مستقیم Slot)
+    [SerializeField] private List<RectTransform> cells = new List<RectTransform>();
+
+    // آیتم‌هایی که این Slot مالک‌شونه (برای منطق)
     private readonly List<ItemView> items = new List<ItemView>();
 
     public bool HasSpace => items.Count < capacity;
 
+    private void Awake()
+    {
+        CacheCellsIfNeeded();
+        capacity = Mathf.Max(1, cells.Count);
+    }
+
+    /// <summary>
+    /// اگر cells از Inspector ست نشده بود، از بچه‌های مستقیم Slot جمع‌آوری می‌کند.
+    /// </summary>
+    public void CacheCellsIfNeeded()
+    {
+        if (cells != null && cells.Count > 0) return;
+
+        cells = new List<RectTransform>();
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            var rt = transform.GetChild(i) as RectTransform;
+            if (rt != null)
+                cells.Add(rt);
+        }
+    }
+
     public bool TryAddItem(ItemView item)
     {
         if (item == null) return false;
+
+        CacheCellsIfNeeded();
+        capacity = Mathf.Max(1, cells.Count);
+
         if (!HasSpace) return false;
+        if (items.Contains(item)) return true;
 
-        if (!items.Contains(item))
-            items.Add(item);
+        // اولین Cell خالی را پیدا کن
+        var emptyCell = GetFirstEmptyCell();
+        if (emptyCell == null) return false;
 
-        ArrangeItems();
+        items.Add(item);
+
+        // آیتم را بفرست داخل Cell
+        var itemRect = item.GetComponent<RectTransform>();
+        itemRect.SetParent(emptyCell, false);
+        itemRect.anchoredPosition = Vector2.zero;
+
         return true;
     }
 
@@ -26,27 +63,42 @@ public class SlotView : MonoBehaviour
     {
         if (item == null) return;
 
-        if (items.Remove(item))
-            ArrangeItems();
+        items.Remove(item);
+        // parent آیتم را اینجا تغییر نمی‌دهیم؛ DragItem هنگام Drag به Canvas می‌برد
     }
 
+    /// <summary>
+    /// برای زمانی که لازم داری ترتیب آیتم‌ها دوباره داخل Cellها مرتب شود.
+    /// </summary>
     public void ArrangeItems()
     {
+        CacheCellsIfNeeded();
+        capacity = Mathf.Max(1, cells.Count);
+
+        // همه آیتم‌ها را دوباره در Cellها از اول بچین
+        int index = 0;
         for (int i = 0; i < items.Count; i++)
         {
-            var rect = items[i].GetComponent<RectTransform>();
-            if (rect == null) continue;
+            if (index >= cells.Count) break;
 
-            rect.SetParent(transform, true);
-            rect.anchoredPosition = GetPos(i);
+            var item = items[i];
+            var itemRect = item.GetComponent<RectTransform>();
+
+            itemRect.SetParent(cells[index], false);
+            itemRect.anchoredPosition = Vector2.zero;
+
+            index++;
         }
     }
 
-    private Vector2 GetPos(int i)
+    private RectTransform GetFirstEmptyCell()
     {
-        // 3 جایگاه برای ظرفیت 3
-        if (i == 0) return new Vector2(-offset, offset);
-        if (i == 1) return new Vector2(offset, offset);
-        return new Vector2(0f, -offset);
+        for (int i = 0; i < cells.Count; i++)
+        {
+            if (cells[i] == null) continue;
+            if (cells[i].childCount == 0)
+                return cells[i];
+        }
+        return null;
     }
 }
