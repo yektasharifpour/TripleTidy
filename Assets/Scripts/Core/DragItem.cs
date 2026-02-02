@@ -14,6 +14,8 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     private CanvasGroup canvasGroup;
     private Transform originalParent;
     private Vector2 originalAnchoredPos;
+    private Vector2 dragOffset;
+    private RectTransform rootCanvasRect;
 
     private ItemView itemView;
 
@@ -28,6 +30,11 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         if (rootCanvas == null)
             rootCanvas = GetComponentInParent<Canvas>();
+
+        if (rootCanvas != null)
+            rootCanvas = rootCanvas.rootCanvas;
+
+        rootCanvasRect = rootCanvas != null ? rootCanvas.transform as RectTransform : null;
 
         // چون آیتم داخل Cell است، Slot را از والدهای بالا پیدا می‌کند
         currentSlot = GetComponentInParent<SlotView>();
@@ -50,15 +57,37 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             previousSlot.RemoveItem(itemView);
 
         // آیتم را ببر زیر Canvas
-        transform.SetParent(rootCanvas.transform, true);
+        if (rootCanvas != null)
+            transform.SetParent(rootCanvas.transform, true);
 
         // هنگام Raycast برای Drop، خود آیتم مزاحم نشود
         canvasGroup.blocksRaycasts = false;
+
+        // Offset را بر اساس موقعیت اشاره‌گر نسبت به Canvas حساب می‌کنیم تا درگ نپرد
+        if (rootCanvasRect != null &&
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                rootCanvasRect, eventData.position, eventData.pressEventCamera, out var localPointerPos))
+        {
+            dragOffset = rect.anchoredPosition - localPointerPos;
+        }
+        else
+        {
+            dragOffset = Vector2.zero;
+        }
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        rect.anchoredPosition += eventData.delta / rootCanvas.scaleFactor;
+        if (rootCanvasRect != null &&
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                rootCanvasRect, eventData.position, eventData.pressEventCamera, out var localPointerPos))
+        {
+            rect.anchoredPosition = localPointerPos + dragOffset;
+        }
+        else if (rootCanvas != null)
+        {
+            rect.anchoredPosition += eventData.delta / rootCanvas.scaleFactor;
+        }
     }
 
     public void OnEndDrag(PointerEventData eventData)
