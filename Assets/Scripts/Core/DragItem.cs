@@ -99,9 +99,8 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         canvasGroup.blocksRaycasts = true;
 
         // اگر مقصد معتبر و ظرفیت داشت
-        if (targetSlot != null && targetSlot.HasSpace)
+        if (targetSlot != null && targetSlot.HasSpace && targetSlot.TryAddItem(itemView))
         {
-            targetSlot.TryAddItem(itemView);
             currentSlot = targetSlot;
             targetSlot.ArrangeItems();
         }

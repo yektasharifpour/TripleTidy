@@ -9,15 +9,13 @@ public class BoardBootstrap : MonoBehaviour
         foreach (var slot in slots)
         {
             slot.CacheCellsIfNeeded();
+            slot.SyncItemsFromCells();
 
             // آیتم‌هایی که داخل Cellها هستند هم پیدا می‌شوند
             var items = slot.GetComponentsInChildren<ItemView>(true);
 
             foreach (var item in items)
             {
-                // چون در Start صحنه ممکن است items از قبل زیر slot باشند، دوباره اضافه می‌کنیم
-                slot.TryAddItem(item);
-
                 var drag = item.GetComponent<DragItem>();
                 if (drag != null)
                     drag.SetCurrentSlot(slot);

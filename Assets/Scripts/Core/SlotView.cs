@@ -36,6 +36,23 @@ public class SlotView : MonoBehaviour
         }
     }
 
+    public void SyncItemsFromCells()
+    {
+        CacheCellsIfNeeded();
+        capacity = Mathf.Max(1, cells.Count);
+
+        items.Clear();
+        for (int i = 0; i < cells.Count; i++)
+        {
+            var cell = cells[i];
+            if (cell == null || cell.childCount == 0) continue;
+
+            var item = cell.GetComponentInChildren<ItemView>(true);
+            if (item != null && !items.Contains(item))
+                items.Add(item);
+        }
+    }
+
     public bool TryAddItem(ItemView item)
     {
         if (item == null) return false;
