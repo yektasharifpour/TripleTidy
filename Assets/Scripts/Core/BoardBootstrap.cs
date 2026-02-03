@@ -64,6 +64,17 @@ public class BoardBootstrap : MonoBehaviour
             Debug.LogError("[BoardBootstrap] itemPrefabs list is empty. Please assign at least one prefab.");
             return;
         }
+        int triplets = fillCount / 3;
+        if (triplets < itemPrefabs.Count)
+        {
+            Debug.LogError(
+                $"[BoardBootstrap] Not enough filled cells to guarantee at least one match per prefab. " +
+                $"You have {itemPrefabs.Count} prefabs, so you need at least {itemPrefabs.Count * 3} filled cells, " +
+                $"but fillCount is {fillCount}. Reduce prefab count or reduce emptyCells."
+            );
+            return;
+        }
+
 
         if (!TryBuildSolution(cellsFlat, totalCells, targetEmpty, fillCount, out var willFill, out var assignedPrefabByCellIndex))
         {
@@ -171,46 +182,31 @@ public class BoardBootstrap : MonoBehaviour
 
         return false;
 
-        // Local function (C#): build triplet bag
         List<GameObject> BuildTripletBag(int count, Dictionary<int, int> fillPerSlot)
         {
             if (count % 3 != 0) return null;
 
             int triplets = count / 3;
+
+            if (triplets < itemPrefabs.Count)
+                return null;
+
             var bag = new List<GameObject>(count);
 
-            bool requireDiversity = false;
-            foreach (var kv in fillPerSlot)
+            for (int p = 0; p < itemPrefabs.Count; p++)
             {
-                if (kv.Value == 3) { requireDiversity = true; break; }
+                var prefab = itemPrefabs[p];
+                if (prefab == null) continue;
+
+                bag.Add(prefab);
+                bag.Add(prefab);
+                bag.Add(prefab);
             }
 
-            GameObject forcedA = null, forcedB = null;
-            if (requireDiversity && itemPrefabs.Count >= 2)
+            int remainingTriplets = triplets - itemPrefabs.Count;
+            for (int t = 0; t < remainingTriplets; t++)
             {
-                forcedA = itemPrefabs[Random.Range(0, itemPrefabs.Count)];
-                forcedB = forcedA;
-
-                int safety = 50;
-                while (forcedB == forcedA && safety-- > 0)
-                    forcedB = itemPrefabs[Random.Range(0, itemPrefabs.Count)];
-            }
-
-            for (int t = 0; t < triplets; t++)
-            {
-                GameObject prefab;
-
-                if (requireDiversity && forcedA != null && forcedB != null)
-                {
-                    if (t == 0) prefab = forcedA;
-                    else if (t == 1) prefab = forcedB;
-                    else prefab = itemPrefabs[Random.Range(0, itemPrefabs.Count)];
-                }
-                else
-                {
-                    prefab = itemPrefabs[Random.Range(0, itemPrefabs.Count)];
-                }
-
+                var prefab = itemPrefabs[Random.Range(0, itemPrefabs.Count)];
                 if (prefab == null) { t--; continue; }
 
                 bag.Add(prefab);
@@ -221,6 +217,7 @@ public class BoardBootstrap : MonoBehaviour
             Shuffle(bag);
             return bag;
         }
+
     }
 
     private bool TryAssignBagToCells_NoTripleInFullSlots(
