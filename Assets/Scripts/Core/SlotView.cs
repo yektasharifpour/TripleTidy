@@ -8,12 +8,19 @@ public class SlotView : MonoBehaviour
 
     // Cell های داخل Slot (بچه‌های مستقیم Slot)
     [SerializeField] private List<RectTransform> cells = new List<RectTransform>();
+    [SerializeField] private MatchCounter matchCounter;
 
     // آیتم‌هایی که این Slot مالک‌شونه (برای منطق)
     private readonly List<ItemView> items = new List<ItemView>();
 
     public bool HasSpace => items.Count < capacity;
-
+    private void Start()
+    {
+        if (matchCounter == null)
+        {
+            matchCounter = FindObjectOfType<MatchCounter>();
+        }
+    }
     private void Awake()
     {
         CacheCellsIfNeeded();
@@ -113,7 +120,7 @@ public class SlotView : MonoBehaviour
         }
         items.Clear();
 
-        MatchCounter.AddMatches(matchedCount / 3);
+        matchCounter.AddMatches(matchedCount / 3);
 
         if (FindObjectsOfType<ItemView>(true).Length == 0)
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);

@@ -1,27 +1,23 @@
 using UnityEngine;
-
+using TMPro;
 public class MatchCounter : MonoBehaviour
 {
-    private static int matchedTotal;
+    
 
-    [SerializeField] private Vector2 position = new Vector2(16f, 16f);
-    [SerializeField] private int fontSize = 19;
-    [SerializeField] private Color textColor = Color.white;
+    [SerializeField] private TextMeshProUGUI matched_count;
+    [SerializeField] private int matchedTotal;
 
-    public static void AddMatches(int count)
+
+    public void AddMatches(int count)
     {
         if (count <= 0) return;
         matchedTotal += count;
     }
-
-    private void OnGUI()
+    
+    void Update()
     {
-        var style = new GUIStyle(GUI.skin.label)
-        {
-            fontSize = fontSize,
-            normal = { textColor = textColor }
-        };
-
-        GUI.Label(new Rect(position.x, position.y, 300f, 40f), $"{matchedTotal}", style);
+        matched_count.text = "combo :" + matchedTotal.ToString();
     }
 }
+
+
