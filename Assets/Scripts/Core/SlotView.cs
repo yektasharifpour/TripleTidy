@@ -8,7 +8,7 @@ public class SlotView : MonoBehaviour
 
     // Cell های داخل Slot (بچه‌های مستقیم Slot)
     [SerializeField] private List<RectTransform> cells = new List<RectTransform>();
-    [SerializeField] private MatchCounter matchCounter;
+     private MatchCounter matchCounter;
 
     // آیتم‌هایی که این Slot مالک‌شونه (برای منطق)
     private readonly List<ItemView> items = new List<ItemView>();
