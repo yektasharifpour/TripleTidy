@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 8495079306304272874}
   - component: {fileID: 935130122939906082}
   - component: {fileID: 1199759182462204532}
+  - component: {fileID: 6193808232812206442}
+  - component: {fileID: 4486390205584769019}
   m_Layer: 5
   m_Name: Water
   m_TagString: Untagged
@@ -106,6 +108,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rootCanvas: {fileID: 0}
+--- !u!225 &6193808232812206442
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7096466650444329816}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &4486390205584769019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7096466650444329816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9faa93ff2ad4054bb501fa80b52d246, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  effectType: 2
+  duration: 0.35
+  ease: 27
+  matchParticles: {fileID: 0}
 --- !u!1 &8255215825339510820
 GameObject:
   m_ObjectHideFlags: 0

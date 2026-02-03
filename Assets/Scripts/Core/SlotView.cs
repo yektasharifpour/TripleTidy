@@ -1,31 +1,30 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class SlotView : MonoBehaviour
 {
     [SerializeField] private int capacity = 3;
-
     [SerializeField] private List<RectTransform> cells = new List<RectTransform>();
-     private MatchCounter matchCounter;
+    private MatchCounter matchCounter;
 
     private readonly List<ItemView> items = new List<ItemView>();
-
     public bool HasSpace => items.Count < capacity;
+
+    private int pendingMatchedDestroys = 0;
+
     private void Start()
     {
         if (matchCounter == null)
-        {
             matchCounter = FindObjectOfType<MatchCounter>();
-        }
     }
+
     private void Awake()
     {
         CacheCellsIfNeeded();
         capacity = Mathf.Max(1, cells.Count);
     }
 
-   
     public void CacheCellsIfNeeded()
     {
         if (cells != null && cells.Count > 0) return;
@@ -34,10 +33,10 @@ public class SlotView : MonoBehaviour
         for (int i = 0; i < transform.childCount; i++)
         {
             var rt = transform.GetChild(i) as RectTransform;
-            if (rt != null)
-                cells.Add(rt);
+            if (rt != null) cells.Add(rt);
         }
     }
+
     public bool TryAddItemToCell(ItemView item, RectTransform targetCell)
     {
         if (item == null || targetCell == null) return false;
@@ -46,9 +45,7 @@ public class SlotView : MonoBehaviour
         capacity = Mathf.Max(1, cells.Count);
 
         if (targetCell.parent != transform) return false;
-
         if (targetCell.childCount > 0) return false;
-
         if (!HasSpace) return false;
         if (items.Contains(item)) return true;
 
@@ -99,18 +96,15 @@ public class SlotView : MonoBehaviour
         itemRect.anchoredPosition = Vector2.zero;
 
         TryResolveMatch();
-
         return true;
     }
 
     public void RemoveItem(ItemView item)
     {
         if (item == null) return;
-
         items.Remove(item);
     }
 
-   
     public void ArrangeItems()
     {
         CacheCellsIfNeeded();
@@ -143,17 +137,51 @@ public class SlotView : MonoBehaviour
         }
 
         var matchedCount = items.Count;
+
         for (int i = 0; i < items.Count; i++)
         {
-            if (items[i] != null)
+            if (items[i] == null) continue;
+
+            pendingMatchedDestroys++;
+
+            var effect = items[i].GetComponent<MatchEffectPlayer>();
+            if (effect != null)
+            {
+                effect.PlayAndDestroy(OnMatchedItemDestroyed);
+            }
+            else
+            {
                 Destroy(items[i].gameObject);
+                OnMatchedItemDestroyed();
+            }
         }
+
         items.Clear();
 
-        matchCounter.AddMatches(matchedCount / 3);
+        if (matchCounter != null)
+            matchCounter.AddMatches(matchedCount / 3);
+    }
 
-        if (FindObjectsOfType<ItemView>(true).Length == 0)
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    private void OnMatchedItemDestroyed()
+    {
+        pendingMatchedDestroys--;
+
+        if (pendingMatchedDestroys <= 0)
+        {
+            StartCoroutine(CheckWinNextFrame());
+        }
+    }
+
+    private IEnumerator CheckWinNextFrame()
+    {
+        yield return null;
+
+        int count = FindObjectsOfType<ItemView>(true).Length;
+        if (count == 0)
+        {
+            var win = FindObjectOfType<WinUIController>(true);
+            if (win != null) win.Win();
+        }
     }
 
     private RectTransform GetFirstEmptyCell()
