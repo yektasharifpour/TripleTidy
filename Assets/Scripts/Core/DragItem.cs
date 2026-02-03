@@ -36,7 +36,6 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         rootCanvasRect = rootCanvas != null ? rootCanvas.transform as RectTransform : null;
 
-        // چون آیتم داخل Cell است، Slot را از والدهای بالا پیدا می‌کند
         currentSlot = GetComponentInParent<SlotView>();
     }
 
@@ -47,23 +46,19 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        originalParent = transform.parent;          // معمولاً Cell
-        originalAnchoredPos = rect.anchoredPosition; // معمولاً صفر
+        originalParent = transform.parent;          
+        originalAnchoredPos = rect.anchoredPosition; 
 
         previousSlot = currentSlot;
 
-        // ✅ همینجا از Slot قبلی خارجش کن (برای همگام بودن لیست‌ها)
         if (previousSlot != null)
             previousSlot.RemoveItem(itemView);
 
-        // آیتم را ببر زیر Canvas
         if (rootCanvas != null)
             transform.SetParent(rootCanvas.transform, true);
 
-        // هنگام Raycast برای Drop، خود آیتم مزاحم نشود
         canvasGroup.blocksRaycasts = false;
 
-        // Offset را بر اساس موقعیت اشاره‌گر نسبت به Canvas حساب می‌کنیم تا درگ نپرد
         if (rootCanvasRect != null &&
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 rootCanvasRect, eventData.position, eventData.pressEventCamera, out var localPointerPos))
@@ -92,11 +87,9 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        // ✅ اول cell و slot مقصد را پیدا کن در حالی که blocksRaycasts هنوز false است
         SlotView targetSlot;
         RectTransform targetCell = GetCellUnderPointer(eventData, out targetSlot);
 
-        // بعد Raycast را روشن کن
         canvasGroup.blocksRaycasts = true;
 
 
@@ -104,11 +97,9 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         if (targetSlot != null && targetSlot.HasSpace)
         {
-            // 1) اگر روی یک cell مشخص افتادیم، اول تلاش کن همون cell
             if (targetCell != null)
                 placed = targetSlot.TryAddItemToCell(itemView, targetCell);
 
-            // 2) اگر cell پر بود یا اصلاً cell نبود → اولین cell خالی همان Slot
             if (!placed)
                 placed = targetSlot.TryAddItem(itemView);
 
@@ -117,7 +108,6 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         }
 
-        // اگر قرار داده نشد، برگرد به Slot قبلی
         if (!placed)
         {
             if (previousSlot != null)
@@ -144,14 +134,12 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         foreach (var r in results)
         {
-            // خود آیتم و بچه‌هاش را ignore کن
             if (r.gameObject == gameObject || r.gameObject.transform.IsChildOf(transform))
                 continue;
 
             var s = r.gameObject.GetComponentInParent<SlotView>();
             if (s == null) continue;
 
-            // اگر روی خود cell افتادیم (cell بچه مستقیم Slot است)
             var cell = r.gameObject.GetComponent<RectTransform>();
             if (cell != null && cell.parent == s.transform)
             {
@@ -159,29 +147,11 @@ public class DragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
                 return cell;
             }
 
-            // حداقل Slot را نگه دار (اگر روی آیتم/چیز دیگری داخل Slot افتادیم)
             slot = s;
         }
 
         return null;
     }
 
-    private SlotView GetSlotUnderPointer(PointerEventData eventData)
-    {
-        var results = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(eventData, results);
 
-        foreach (var r in results)
-        {
-            // خود آیتم و بچه‌هاش را ignore کن
-            if (r.gameObject == gameObject || r.gameObject.transform.IsChildOf(transform))
-                continue;
-
-            var slot = r.gameObject.GetComponentInParent<SlotView>();
-            if (slot != null)
-                return slot;
-        }
-
-        return null;
-    }
 }

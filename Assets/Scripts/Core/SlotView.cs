@@ -6,11 +6,9 @@ public class SlotView : MonoBehaviour
 {
     [SerializeField] private int capacity = 3;
 
-    // Cell های داخل Slot (بچه‌های مستقیم Slot)
     [SerializeField] private List<RectTransform> cells = new List<RectTransform>();
      private MatchCounter matchCounter;
 
-    // آیتم‌هایی که این Slot مالک‌شونه (برای منطق)
     private readonly List<ItemView> items = new List<ItemView>();
 
     public bool HasSpace => items.Count < capacity;
@@ -27,9 +25,7 @@ public class SlotView : MonoBehaviour
         capacity = Mathf.Max(1, cells.Count);
     }
 
-    /// <summary>
-    /// اگر cells از Inspector ست نشده بود، از بچه‌های مستقیم Slot جمع‌آوری می‌کند.
-    /// </summary>
+   
     public void CacheCellsIfNeeded()
     {
         if (cells != null && cells.Count > 0) return;
@@ -49,10 +45,8 @@ public class SlotView : MonoBehaviour
         CacheCellsIfNeeded();
         capacity = Mathf.Max(1, cells.Count);
 
-        // باید cell بچه‌ی مستقیم همین Slot باشد
         if (targetCell.parent != transform) return false;
 
-        // اگر cell پر است، اجازه نمی‌دهیم (تا DragItem fallback کند به اولین خالی)
         if (targetCell.childCount > 0) return false;
 
         if (!HasSpace) return false;
@@ -95,13 +89,11 @@ public class SlotView : MonoBehaviour
         if (!HasSpace) return false;
         if (items.Contains(item)) return true;
 
-        // اولین Cell خالی را پیدا کن
         var emptyCell = GetFirstEmptyCell();
         if (emptyCell == null) return false;
 
         items.Add(item);
 
-        // آیتم را بفرست داخل Cell
         var itemRect = item.GetComponent<RectTransform>();
         itemRect.SetParent(emptyCell, false);
         itemRect.anchoredPosition = Vector2.zero;
@@ -116,18 +108,14 @@ public class SlotView : MonoBehaviour
         if (item == null) return;
 
         items.Remove(item);
-        // parent آیتم را اینجا تغییر نمی‌دهیم؛ DragItem هنگام Drag به Canvas می‌برد
     }
 
-    /// <summary>
-    /// برای زمانی که لازم داری ترتیب آیتم‌ها دوباره داخل Cellها مرتب شود.
-    /// </summary>
+   
     public void ArrangeItems()
     {
         CacheCellsIfNeeded();
         capacity = Mathf.Max(1, cells.Count);
 
-        // همه آیتم‌ها را دوباره در Cellها از اول بچین
         int index = 0;
         for (int i = 0; i < items.Count; i++)
         {
