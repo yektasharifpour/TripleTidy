@@ -1,5 +1,6 @@
 public enum ItemType
 {
     Ice,
-    Choc
+    Choc,
+    Water
 }

@@ -494,6 +494,7 @@ MonoBehaviour:
   itemPrefabs:
   - {fileID: 6746213948062676978, guid: 25a2d15a380f0684aa59591fde232b38, type: 3}
   - {fileID: 3211674683626793135, guid: 185c9c399400a9345ac2c744684522e4, type: 3}
+  - {fileID: 7096466650444329816, guid: 50598e6916c054941b08ab5f8fbf2edc, type: 3}
   emptyCells: 6
   maxAttempts: 200
 --- !u!114 &426644419

@@ -35,7 +35,7 @@ public class ItemView : MonoBehaviour
     private void UpdateVisual()
     {
         if (label == null) return;
-
-        label.text = type == ItemType.Ice ? "Ice" : "Choc";
+        label.text = type.ToString();
     }
+
 }
