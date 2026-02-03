@@ -8,12 +8,19 @@ public class SlotView : MonoBehaviour
 
     // Cell های داخل Slot (بچه‌های مستقیم Slot)
     [SerializeField] private List<RectTransform> cells = new List<RectTransform>();
+     private MatchCounter matchCounter;
 
     // آیتم‌هایی که این Slot مالک‌شونه (برای منطق)
     private readonly List<ItemView> items = new List<ItemView>();
 
     public bool HasSpace => items.Count < capacity;
-
+    private void Start()
+    {
+        if (matchCounter == null)
+        {
+            matchCounter = FindObjectOfType<MatchCounter>();
+        }
+    }
     private void Awake()
     {
         CacheCellsIfNeeded();
@@ -34,6 +41,31 @@ public class SlotView : MonoBehaviour
             if (rt != null)
                 cells.Add(rt);
         }
+    }
+    public bool TryAddItemToCell(ItemView item, RectTransform targetCell)
+    {
+        if (item == null || targetCell == null) return false;
+
+        CacheCellsIfNeeded();
+        capacity = Mathf.Max(1, cells.Count);
+
+        // باید cell بچه‌ی مستقیم همین Slot باشد
+        if (targetCell.parent != transform) return false;
+
+        // اگر cell پر است، اجازه نمی‌دهیم (تا DragItem fallback کند به اولین خالی)
+        if (targetCell.childCount > 0) return false;
+
+        if (!HasSpace) return false;
+        if (items.Contains(item)) return true;
+
+        items.Add(item);
+
+        var itemRect = item.GetComponent<RectTransform>();
+        itemRect.SetParent(targetCell, false);
+        itemRect.anchoredPosition = Vector2.zero;
+
+        TryResolveMatch();
+        return true;
     }
 
     public void SyncItemsFromCells()
@@ -130,7 +162,7 @@ public class SlotView : MonoBehaviour
         }
         items.Clear();
 
-        MatchCounter.AddMatches(matchedCount / 3);
+        matchCounter.AddMatches(matchedCount / 3);
 
         if (FindObjectsOfType<ItemView>(true).Length == 0)
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
