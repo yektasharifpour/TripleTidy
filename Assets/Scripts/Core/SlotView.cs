@@ -42,6 +42,31 @@ public class SlotView : MonoBehaviour
                 cells.Add(rt);
         }
     }
+    public bool TryAddItemToCell(ItemView item, RectTransform targetCell)
+    {
+        if (item == null || targetCell == null) return false;
+
+        CacheCellsIfNeeded();
+        capacity = Mathf.Max(1, cells.Count);
+
+        // باید cell بچه‌ی مستقیم همین Slot باشد
+        if (targetCell.parent != transform) return false;
+
+        // اگر cell پر است، اجازه نمی‌دهیم (تا DragItem fallback کند به اولین خالی)
+        if (targetCell.childCount > 0) return false;
+
+        if (!HasSpace) return false;
+        if (items.Contains(item)) return true;
+
+        items.Add(item);
+
+        var itemRect = item.GetComponent<RectTransform>();
+        itemRect.SetParent(targetCell, false);
+        itemRect.anchoredPosition = Vector2.zero;
+
+        TryResolveMatch();
+        return true;
+    }
 
     public bool TryAddItem(ItemView item)
     {
