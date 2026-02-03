@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SlotView : MonoBehaviour
 {
@@ -56,6 +57,8 @@ public class SlotView : MonoBehaviour
         itemRect.SetParent(emptyCell, false);
         itemRect.anchoredPosition = Vector2.zero;
 
+        TryResolveMatch();
+
         return true;
     }
 
@@ -89,6 +92,31 @@ public class SlotView : MonoBehaviour
 
             index++;
         }
+    }
+
+    private void TryResolveMatch()
+    {
+        if (items.Count != capacity) return;
+
+        var firstType = items[0].Type;
+        for (int i = 1; i < items.Count; i++)
+        {
+            if (items[i].Type != firstType)
+                return;
+        }
+
+        var matchedCount = items.Count;
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (items[i] != null)
+                Destroy(items[i].gameObject);
+        }
+        items.Clear();
+
+        MatchCounter.AddMatches(matchedCount / 3);
+
+        if (FindObjectsOfType<ItemView>(true).Length == 0)
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     private RectTransform GetFirstEmptyCell()
