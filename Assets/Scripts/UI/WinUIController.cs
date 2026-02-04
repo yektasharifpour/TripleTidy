@@ -80,17 +80,17 @@ public class WinUIController : MonoBehaviour
              losePanel.SetActive(true);
             loseImage.DOKill();
 
-            // 🔹 مقصد: وسط صفحه
+            
             RectTransform canvasRT = loseImage.GetComponentInParent<Canvas>().GetComponent<RectTransform>();
             Vector2 centerPos = Vector2.zero;
 
-            // 🔹 شروع: خارج از دید، بالای صفحه
+            
             float canvasHalfHeight = canvasRT.rect.height * 0.5f;
             float imageHalfHeight = loseImage.rect.height * 0.5f;
 
             Vector2 startPos = new Vector2(
                 0,
-                canvasHalfHeight + imageHalfHeight + 50f // کاملاً بیرون
+                canvasHalfHeight + imageHalfHeight + 50f 
             );
 
             loseImage.anchoredPosition = startPos;
@@ -102,7 +102,7 @@ public class WinUIController : MonoBehaviour
         
     }
 
-        Debug.Log("you lose");
+        
     }
     public void restart()
     {
