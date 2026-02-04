@@ -2,11 +2,13 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using TMPro;
 
 public class TimerBarHybrid : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField] private Image fillImage;
+    [SerializeField] private TextMeshProUGUI timerText;
 
     [Header("Timer")]
     [SerializeField] private float durationSeconds = 30f;
@@ -32,6 +34,7 @@ public class TimerBarHybrid : MonoBehaviour
 
     private Tween fillTween;
     private Tween colorTween;
+    private WinUIController winUIController;
 
     private Color currentTargetColor;
 
@@ -44,6 +47,7 @@ public class TimerBarHybrid : MonoBehaviour
     }
     private void Start()
     {
+        winUIController = FindObjectOfType<WinUIController>();
         StartTimer();   
     }
 
@@ -67,7 +71,9 @@ public class TimerBarHybrid : MonoBehaviour
         {
             running = false;
             onTimeUp?.Invoke();
+            winUIController.lose();
         }
+        setTextTimer(timeLeft);
     }
 
     private void UpdateColor(float normalized)
@@ -104,4 +110,25 @@ public class TimerBarHybrid : MonoBehaviour
     }
 
     public float GetTimeLeft() => timeLeft;
+
+    private void  setTextTimer(float remainingTime)
+    {
+        int minutes = (int)remainingTime / 60; 
+        int seconds = (int)remainingTime % 60;
+   
+
+        if ( seconds < 10)
+        {
+            timerText.text =  minutes.ToString() + " : " + "0"+ seconds.ToString();
+
+        }
+        else
+        {
+            timerText.text = minutes.ToString() + " : " + seconds.ToString();
+
+        }
+
+
+    }
+ 
 }

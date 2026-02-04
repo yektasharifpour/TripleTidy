@@ -34,7 +34,7 @@ public class MatchCounter : MonoBehaviour
 
     private void UpdateText()
     {
-        matchedCountText.text = $"combo: {matchedTotal}";
+        matchedCountText.text = $"combo x{matchedTotal}";
     }
 
     private void PlayPopEffect()
