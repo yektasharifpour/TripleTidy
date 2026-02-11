@@ -769,7 +769,7 @@ GameObject:
   - component: {fileID: 343275142}
   - component: {fileID: 343275141}
   m_Layer: 5
-  m_Name: Button
+  m_Name: Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -793,7 +793,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -325, y: -150}
+  m_AnchoredPosition: {x: -320, y: -150}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &343275141
@@ -811,6 +811,10 @@ MonoBehaviour:
   maxUses: 3
   itemsToConvert: 3
   cooldownSeconds: 1.5
+  itemPrefabs:
+  - {fileID: 6746213948062676978, guid: 25a2d15a380f0684aa59591fde232b38, type: 3}
+  - {fileID: 3211674683626793135, guid: 185c9c399400a9345ac2c744684522e4, type: 3}
+  - {fileID: 7096466650444329816, guid: 50598e6916c054941b08ab5f8fbf2edc, type: 3}
   wandEffect: {fileID: 0}
   convertSound: {fileID: 0}
 --- !u!114 &343275142
@@ -2106,7 +2110,7 @@ GameObject:
   - component: {fileID: 1220219487}
   - component: {fileID: 1220219486}
   m_Layer: 5
-  m_Name: Button
+  m_Name: Hammer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2130,7 +2134,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -205, y: -150}
+  m_AnchoredPosition: {x: -200, y: -150}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1220219486
@@ -3015,7 +3019,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -85, y: -150}
+  m_AnchoredPosition: {x: -80, y: -150}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1667900587
