@@ -22,13 +22,11 @@ public class ShufflePowerUp : MonoBehaviour
     private int remainingUses;
     private float lastUsedTime = -999f;
     private AudioSource audioSource;
-    private Text buttonText;
     private bool wasOnCooldownLastFrame = false;
 
     private void Awake()
     {
         button = GetComponent<Button>();
-        buttonText = GetComponentInChildren<Text>(true);
         
         remainingUses = maxUses;
         audioSource = GetComponent<AudioSource>();
@@ -48,16 +46,13 @@ public class ShufflePowerUp : MonoBehaviour
 
     private void Update()
     {
-        // Only check cooldown state when we're actually on cooldown (avoids unnecessary checks)
         if (remainingUses > 0 && Time.time - lastUsedTime < cooldownSeconds)
         {
-            // Still on cooldown - update button state to show countdown
             UpdateButtonState();
             wasOnCooldownLastFrame = true;
         }
         else if (wasOnCooldownLastFrame)
         {
-            // Cooldown just ended - update state once
             UpdateButtonState();
             wasOnCooldownLastFrame = false;
         }
@@ -67,43 +62,21 @@ public class ShufflePowerUp : MonoBehaviour
     {
         bool onCooldown = Time.time - lastUsedTime < cooldownSeconds;
         button.interactable = remainingUses > 0 && !onCooldown;
-
-        // Update button text if a Text component exists
-        if (buttonText != null)
-        {
-            if (remainingUses <= 0)
-                buttonText.text = "No Uses Left";
-            else if (onCooldown)
-            {
-                float remainingCooldown = Mathf.CeilToInt(cooldownSeconds - (Time.time - lastUsedTime));
-                buttonText.text = $"Wait {remainingCooldown}s";
-            }
-            else
-                buttonText.text = $"Shuffle ({remainingUses})";
-        }
     }
 
     public void ExecuteShuffle()
     {
-        // Safety checks
         if (remainingUses <= 0) return;
         if (Time.time - lastUsedTime < cooldownSeconds) return;
 
-        // 1. Find all slots in the scene
         var slots = FindObjectsOfType<SlotView>(true);
-        if (slots == null || slots.Length == 0)
-        {
-            Debug.LogWarning("[ShufflePowerUp] No SlotView components found in scene!");
-            return;
-        }
+        if (slots == null || slots.Length == 0) return;
 
-        // 2. Collect all items currently in slots
         var allItems = new List<ItemView>();
         foreach (var slot in slots)
         {
-            slot.SyncItemsFromCells(); // Ensure internal state is up-to-date
+            slot.SyncItemsFromCells();
             
-            // Get items via transform hierarchy
             var itemsInSlot = slot.GetComponentsInChildren<ItemView>(true);
             foreach (var item in itemsInSlot)
             {
@@ -111,36 +84,26 @@ public class ShufflePowerUp : MonoBehaviour
                 
                 allItems.Add(item);
                 
-                // Remove from current slot
                 slot.RemoveItem(item);
                 
-                // Detach from slot hierarchy
                 var rect = item.GetComponent<RectTransform>();
                 if (rect != null && rect.parent != null)
                 {
                     rect.SetParent(null, true);
-                    rect.localScale = Vector3.one; // Reset scale
+                    rect.localScale = Vector3.one;
                 }
             }
         }
 
-        // Nothing to shuffle
-        if (allItems.Count == 0)
-        {
-            Debug.LogWarning("[ShufflePowerUp] No items to shuffle!");
-            return;
-        }
+        if (allItems.Count == 0) return;
 
-        // 3. Shuffle items randomly
         ShuffleList(allItems);
 
-        // 4. Redistribute items to slots (respecting capacity via TryAddItem)
         int itemIndex = 0;
         while (itemIndex < allItems.Count)
         {
             bool placed = false;
             
-            // Try slots in random order to avoid bias
             var shuffledSlots = new List<SlotView>(slots);
             ShuffleList(shuffledSlots);
             
@@ -148,7 +111,6 @@ public class ShufflePowerUp : MonoBehaviour
             {
                 if (slot.HasSpace && slot.TryAddItem(allItems[itemIndex]))
                 {
-                    // Update DragItem's slot reference
                     var dragItem = allItems[itemIndex].GetComponent<DragItem>();
                     if (dragItem != null)
                     {
@@ -161,21 +123,14 @@ public class ShufflePowerUp : MonoBehaviour
                 }
             }
             
-            // Safety break - shouldn't happen with valid board setup
-            if (!placed)
-            {
-                Debug.LogWarning($"[ShufflePowerUp] Could not place item {itemIndex} - insufficient slot capacity!");
-                break;
-            }
+            if (!placed) break;
         }
 
-        // 5. Arrange items visually in all slots
         foreach (var slot in slots)
         {
             slot.ArrangeItems();
         }
 
-        // 6. Play feedback effects
         if (shuffleEffect != null)
         {
             var effect = Instantiate(shuffleEffect, transform.position, Quaternion.identity);
@@ -187,12 +142,9 @@ public class ShufflePowerUp : MonoBehaviour
             audioSource.PlayOneShot(shuffleSound);
         }
 
-        // 7. Update power-up state
         remainingUses--;
         lastUsedTime = Time.time;
         UpdateButtonState();
-
-        Debug.Log($"[ShufflePowerUp] Successfully shuffled {itemIndex} items across {slots.Length} slots.");
     }
 
     private void ShuffleList<T>(List<T> list)
@@ -204,7 +156,6 @@ public class ShufflePowerUp : MonoBehaviour
         }
     }
 
-    // Optional: Reset power-up for new game
     public void ResetPowerUp()
     {
         remainingUses = maxUses;

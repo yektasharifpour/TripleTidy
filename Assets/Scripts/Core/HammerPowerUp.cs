@@ -22,12 +22,10 @@ public class HammerPowerUp : MonoBehaviour
     private int remainingUses;
     private float lastUsedTime = -999f;
     private AudioSource audioSource;
-    private Text buttonText;
 
     private void Awake()
     {
         button = GetComponent<Button>();
-        buttonText = GetComponentInChildren<Text>(true);
         
         remainingUses = maxUses;
         audioSource = GetComponent<AudioSource>();
@@ -47,7 +45,6 @@ public class HammerPowerUp : MonoBehaviour
 
     private void Update()
     {
-        // ALWAYS keep button state updated with current game state
         UpdateButtonState();
     }
 
@@ -56,22 +53,6 @@ public class HammerPowerUp : MonoBehaviour
         bool onCooldown = Time.time - lastUsedTime < cooldownSeconds;
         bool hasPossibleMatch = HasAvailableMatch();
         button.interactable = remainingUses > 0 && !onCooldown && hasPossibleMatch;
-
-        // Update button text
-        if (buttonText != null)
-        {
-            if (remainingUses <= 0)
-                buttonText.text = "No Uses Left";
-            else if (onCooldown)
-            {
-                float remainingCooldown = Mathf.CeilToInt(cooldownSeconds - (Time.time - lastUsedTime));
-                buttonText.text = $"Wait {remainingCooldown}s";
-            }
-            else if (!hasPossibleMatch)
-                buttonText.text = "No Match";
-            else
-                buttonText.text = $"Hammer ({remainingUses})";
-        }
     }
 
     private bool HasAvailableMatch()
@@ -79,15 +60,13 @@ public class HammerPowerUp : MonoBehaviour
         var slots = FindObjectsOfType<SlotView>(true);
         if (slots == null || slots.Length == 0) return false;
 
-        // Look for ANY slot with at least 2 matching items of the same type
         foreach (var slot in slots)
         {
             slot.SyncItemsFromCells();
             var items = slot.GetComponentsInChildren<ItemView>(true);
             
-            if (items.Length < 2) continue; // Need at least 2 items to have a pair
+            if (items.Length < 2) continue;
             
-            // Count item types in this slot
             var typeCounts = new Dictionary<ItemType, int>();
             foreach (var item in items)
             {
@@ -99,12 +78,10 @@ public class HammerPowerUp : MonoBehaviour
                 }
             }
             
-            // Check if any type appears at least twice
             foreach (var kvp in typeCounts)
             {
                 if (kvp.Value >= 2)
                 {
-                    // Verify there's a matching item in ANOTHER slot to complete the match
                     if (HasMatchingItemInOtherSlot(kvp.Key, slot))
                     {
                         return true;
@@ -136,7 +113,6 @@ public class HammerPowerUp : MonoBehaviour
 
     public void ExecuteHammer()
     {
-        // Safety checks
         if (remainingUses <= 0) return;
         if (Time.time - lastUsedTime < cooldownSeconds) return;
         if (!HasAvailableMatch()) return;
@@ -144,7 +120,6 @@ public class HammerPowerUp : MonoBehaviour
         var slots = FindObjectsOfType<SlotView>(true);
         if (slots == null || slots.Length == 0) return;
 
-        // Find first completable match opportunity
         foreach (var targetSlot in slots)
         {
             targetSlot.SyncItemsFromCells();
@@ -152,7 +127,6 @@ public class HammerPowerUp : MonoBehaviour
             
             if (targetItems.Length < 2) continue;
             
-            // Count item types in target slot
             var typeCounts = new Dictionary<ItemType, int>();
             foreach (var item in targetItems)
             {
@@ -164,14 +138,12 @@ public class HammerPowerUp : MonoBehaviour
                 }
             }
             
-            // Find a type that appears at least twice
             foreach (var kvp in typeCounts)
             {
                 if (kvp.Value >= 2)
                 {
                     ItemType matchType = kvp.Key;
                     
-                    // Find a matching item in another slot
                     foreach (var sourceSlot in slots)
                     {
                         if (sourceSlot == targetSlot) continue;
@@ -183,17 +155,12 @@ public class HammerPowerUp : MonoBehaviour
                         {
                             if (sourceItem != null && sourceItem.Type == matchType)
                             {
-                                // FOUND A MATCH OPPORTUNITY!
-                                // Decide action based on target slot state:
                                 if (targetSlot.HasSpace)
                                 {
-                                    // ACTION 1: MOVE (slot has space)
                                     CompleteMatchByMove(targetSlot, sourceSlot, sourceItem, matchType);
                                 }
                                 else
                                 {
-                                    // ACTION 2: SWAP (slot is full - replace the odd item)
-                                    // Find the "odd one out" item to swap away
                                     ItemView itemToReplace = null;
                                     foreach (var item in targetItems)
                                     {
@@ -204,14 +171,12 @@ public class HammerPowerUp : MonoBehaviour
                                         }
                                     }
                                     
-                                    // Only swap if there's actually an odd item (should always be true for full slots with 2 matching)
                                     if (itemToReplace != null)
                                     {
                                         CompleteMatchBySwap(targetSlot, sourceSlot, itemToReplace, sourceItem, matchType);
                                     }
                                 }
                                 
-                                // Match completed - exit early
                                 return;
                             }
                         }
@@ -220,16 +185,13 @@ public class HammerPowerUp : MonoBehaviour
             }
         }
         
-        // No match found (shouldn't happen due to HasAvailableMatch check)
         UpdateButtonState();
     }
 
     private void CompleteMatchByMove(SlotView targetSlot, SlotView sourceSlot, ItemView itemToMove, ItemType matchType)
     {
-        // 1. Remove item from source slot
         sourceSlot.RemoveItem(itemToMove);
         
-        // Detach from source hierarchy
         var rect = itemToMove.GetComponent<RectTransform>();
         if (rect != null && rect.parent != null)
         {
@@ -237,33 +199,24 @@ public class HammerPowerUp : MonoBehaviour
             rect.localScale = Vector3.one;
         }
 
-        // 2. Add to target slot - THIS AUTOMATICALLY TRIGGERS TryResolveMatch() internally!
         if (targetSlot.TryAddItem(itemToMove))
         {
-            // Update DragItem reference
             var dragItem = itemToMove.GetComponent<DragItem>();
             if (dragItem != null)
             {
                 dragItem.SetCurrentSlot(targetSlot);
             }
             
-            // 3. Arrange source slot items visually
             sourceSlot.ArrangeItems();
             
-            // 4. Play feedback effects
             PlayFeedbackEffects(targetSlot.transform.position, matchType);
-            
-            Debug.Log($"[HammerPowerUp] Moved item to complete {matchType} match in {targetSlot.name}");
         }
         else
         {
-            // Failed to add - return item to source slot
             sourceSlot.TryAddItem(itemToMove);
             sourceSlot.ArrangeItems();
-            Debug.LogWarning("[HammerPowerUp] Failed to add item to target slot during MOVE");
         }
 
-        // 5. Update power-up state
         remainingUses--;
         lastUsedTime = Time.time;
         UpdateButtonState();
@@ -271,11 +224,9 @@ public class HammerPowerUp : MonoBehaviour
 
     private void CompleteMatchBySwap(SlotView targetSlot, SlotView sourceSlot, ItemView itemToReplace, ItemView itemToBring, ItemType matchType)
     {
-        // 1. Remove both items from their slots
         targetSlot.RemoveItem(itemToReplace);
         sourceSlot.RemoveItem(itemToBring);
         
-        // 2. Detach from hierarchies
         var rectReplace = itemToReplace.GetComponent<RectTransform>();
         var rectBring = itemToBring.GetComponent<RectTransform>();
         
@@ -291,20 +242,16 @@ public class HammerPowerUp : MonoBehaviour
             rectBring.localScale = Vector3.one;
         }
 
-        // 3. SWAP: Put matching item into target slot, odd item into source slot
         bool addedToTarget = targetSlot.TryAddItem(itemToBring);
         bool addedToSource = sourceSlot.TryAddItem(itemToReplace);
         
         if (addedToTarget)
         {
-            // Update DragItem references
             var dragBring = itemToBring.GetComponent<DragItem>();
             if (dragBring != null)
             {
                 dragBring.SetCurrentSlot(targetSlot);
             }
-            
-            // Target slot now has 3 matching items → match auto-resolves via TryAddItem()
         }
         
         if (addedToSource)
@@ -318,12 +265,8 @@ public class HammerPowerUp : MonoBehaviour
             sourceSlot.ArrangeItems();
         }
 
-        // 4. Play feedback effects
         PlayFeedbackEffects(targetSlot.transform.position, matchType);
-        
-        Debug.Log($"[HammerPowerUp] Swapped items to complete {matchType} match in {targetSlot.name}");
 
-        // 5. Update power-up state
         remainingUses--;
         lastUsedTime = Time.time;
         UpdateButtonState();
@@ -343,7 +286,6 @@ public class HammerPowerUp : MonoBehaviour
         }
     }
 
-    // Optional: Reset power-up for new game
     public void ResetPowerUp()
     {
         remainingUses = maxUses;
