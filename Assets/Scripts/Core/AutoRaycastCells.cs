@@ -3,8 +3,7 @@ using UnityEngine.UI;
 
 public class AutoRaycastCells : MonoBehaviour
 {
-    [SerializeField] private bool includeInactive = true;
-    [SerializeField] private bool refreshEveryFrame = false;
+    [SerializeField] private bool includeInactive = t    [SerializeField] private bool refreshEveryFrame = false;
 
     private bool refreshQueued = false;
 
@@ -62,5 +61,8 @@ public class AutoRaycastCells : MonoBehaviour
     private void QueueRefresh()
     {
         refreshQueued = true;
+
+            }
+        }
     }
 }
