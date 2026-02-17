@@ -4,8 +4,39 @@ using UnityEngine.UI;
 public class AutoRaycastCells : MonoBehaviour
 {
     [SerializeField] private bool includeInactive = true;
+    [SerializeField] private bool refreshEveryFrame = false;
+
+    private bool refreshQueued = false;
 
     private void Awake()
+    {
+        QueueRefresh();
+    }
+
+    private void OnEnable()
+    {
+        QueueRefresh();
+    }
+
+    private void OnTransformChildrenChanged()
+    {
+        QueueRefresh();
+    }
+
+    private void LateUpdate()
+    {
+        if (refreshEveryFrame)
+        {
+            RefreshRaycastTargets();
+            return;
+        }
+
+        if (!refreshQueued) return;
+        refreshQueued = false;
+        RefreshRaycastTargets();
+    }
+
+    public void RefreshRaycastTargets()
     {
         var slots = FindObjectsOfType<SlotView>(includeInactive);
 
@@ -26,5 +57,10 @@ public class AutoRaycastCells : MonoBehaviour
                 img.raycastTarget = true;
             }
         }
+    }
+
+    private void QueueRefresh()
+    {
+        refreshQueued = true;
     }
 }

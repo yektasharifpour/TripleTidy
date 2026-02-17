@@ -11,6 +11,9 @@ public class HammerPowerUp : MonoBehaviour
     
     [Tooltip("Cooldown in seconds between uses")]
     [SerializeField] private float cooldownSeconds = 1f;
+
+    [Tooltip("How often to scan the board for available matches (seconds)")]
+    [SerializeField] private float availabilityScanInterval = 0.25f;
     
     [Tooltip("Optional visual effect when hammer completes a match")]
     [SerializeField] private ParticleSystem hammerEffect;
@@ -22,6 +25,8 @@ public class HammerPowerUp : MonoBehaviour
     private int remainingUses;
     private float lastUsedTime = -999f;
     private AudioSource audioSource;
+    private float nextAvailabilityScanTime = 0f;
+    private bool cachedHasAvailableMatch = false;
 
     private void Awake()
     {
@@ -35,7 +40,7 @@ public class HammerPowerUp : MonoBehaviour
             audioSource.playOnAwake = false;
         }
 
-        UpdateButtonState();
+        UpdateButtonState(true);
     }
 
     private void Start()
@@ -48,11 +53,28 @@ public class HammerPowerUp : MonoBehaviour
         UpdateButtonState();
     }
 
-    private void UpdateButtonState()
+    private void UpdateButtonState(bool forceRescan = false)
     {
+        if (remainingUses <= 0)
+        {
+            button.interactable = false;
+            return;
+        }
+
         bool onCooldown = Time.time - lastUsedTime < cooldownSeconds;
-        bool hasPossibleMatch = HasAvailableMatch();
-        button.interactable = remainingUses > 0 && !onCooldown && hasPossibleMatch;
+        if (onCooldown)
+        {
+            button.interactable = false;
+            return;
+        }
+
+        if (forceRescan || Time.time >= nextAvailabilityScanTime)
+        {
+            cachedHasAvailableMatch = HasAvailableMatch();
+            nextAvailabilityScanTime = Time.time + availabilityScanInterval;
+        }
+
+        button.interactable = cachedHasAvailableMatch;
     }
 
     private bool HasAvailableMatch()
@@ -219,7 +241,7 @@ public class HammerPowerUp : MonoBehaviour
 
         remainingUses--;
         lastUsedTime = Time.time;
-        UpdateButtonState();
+        UpdateButtonState(true);
     }
 
     private void CompleteMatchBySwap(SlotView targetSlot, SlotView sourceSlot, ItemView itemToReplace, ItemView itemToBring, ItemType matchType)
@@ -269,7 +291,7 @@ public class HammerPowerUp : MonoBehaviour
 
         remainingUses--;
         lastUsedTime = Time.time;
-        UpdateButtonState();
+        UpdateButtonState(true);
     }
 
     private void PlayFeedbackEffects(Vector3 position, ItemType matchType)
@@ -290,6 +312,6 @@ public class HammerPowerUp : MonoBehaviour
     {
         remainingUses = maxUses;
         lastUsedTime = -999f;
-        UpdateButtonState();
+        UpdateButtonState(true);
     }
 }
