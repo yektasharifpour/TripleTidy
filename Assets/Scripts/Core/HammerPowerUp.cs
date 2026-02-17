@@ -82,54 +82,51 @@ public class HammerPowerUp : MonoBehaviour
         var slots = FindObjectsOfType<SlotView>(true);
         if (slots == null || slots.Length == 0) return false;
 
-        foreach (var slot in slots)
-        {
-            slot.SyncItemsFromCells();
-            var items = slot.GetComponentsInChildren<ItemView>(true);
-            
-            if (items.Length < 2) continue;
-            
-            var typeCounts = new Dictionary<ItemType, int>();
-            foreach (var item in items)
-            {
-                if (item != null)
-                {
-                    if (!typeCounts.ContainsKey(item.Type))
-                        typeCounts[item.Type] = 0;
-                    typeCounts[item.Type]++;
-                }
-            }
-            
-            foreach (var kvp in typeCounts)
-            {
-                if (kvp.Value >= 2)
-                {
-                    if (HasMatchingItemInOtherSlot(kvp.Key, slot))
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
+        var totalCounts = new Dictionary<ItemType, int>();
+        var perSlotCounts = new List<Dictionary<ItemType, int>>(slots.Length);
 
-    private bool HasMatchingItemInOtherSlot(ItemType itemType, SlotView excludeSlot)
-    {
-        var slots = FindObjectsOfType<SlotView>(true);
         foreach (var slot in slots)
         {
-            if (slot == excludeSlot) continue;
-            
             slot.SyncItemsFromCells();
             var items = slot.GetComponentsInChildren<ItemView>(true);
-            
+            if (items == null || items.Length == 0)
+            {
+                perSlotCounts.Add(null);
+                continue;
+            }
+
+            var slotCounts = new Dictionary<ItemType, int>();
             foreach (var item in items)
             {
-                if (item != null && item.Type == itemType)
+                if (item == null) continue;
+
+                if (!slotCounts.ContainsKey(item.Type))
+                    slotCounts[item.Type] = 0;
+                slotCounts[item.Type]++;
+
+                if (!totalCounts.ContainsKey(item.Type))
+                    totalCounts[item.Type] = 0;
+                totalCounts[item.Type]++;
+            }
+
+            perSlotCounts.Add(slotCounts);
+        }
+
+        for (int i = 0; i < perSlotCounts.Count; i++)
+        {
+            var slotCounts = perSlotCounts[i];
+            if (slotCounts == null) continue;
+
+            foreach (var kvp in slotCounts)
+            {
+                if (kvp.Value < 2) continue;
+
+                int totalCount = totalCounts[kvp.Key];
+                if (totalCount - kvp.Value > 0)
                     return true;
             }
         }
+
         return false;
     }
 

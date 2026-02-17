@@ -32,11 +32,11 @@ public class TimerBarHybrid : MonoBehaviour
     private float timeLeft;
     private bool running;
 
-    private Tween fillTween;
     private Tween colorTween;
     private WinUIController winUIController;
 
     private Color currentTargetColor;
+    private int lastDisplayedSeconds = -1;
 
     private void Awake()
     {
@@ -60,10 +60,7 @@ public class TimerBarHybrid : MonoBehaviour
 
         float normalized = durationSeconds <= 0f ? 0f : (timeLeft / durationSeconds);
 
-        fillTween?.Kill();
-        fillTween = fillImage
-            .DOFillAmount(normalized, smoothTime)
-            .SetEase(Ease.Linear);
+        UpdateFillAmount(normalized);
 
         UpdateColor(normalized);
 
@@ -71,13 +68,16 @@ public class TimerBarHybrid : MonoBehaviour
         {
             running = false;
             onTimeUp?.Invoke();
-            winUIController.lose();
+            if (winUIController != null)
+                winUIController.lose();
         }
         setTextTimer(timeLeft);
     }
 
     private void UpdateColor(float normalized)
     {
+        if (fillImage == null) return;
+
         Color target;
 
         if (normalized > yellowThreshold)
@@ -104,31 +104,42 @@ public class TimerBarHybrid : MonoBehaviour
     public void ResetTimer()
     {
         timeLeft = durationSeconds;
-        fillImage.fillAmount = 1f;
-        fillImage.color = greenColor;
+        if (fillImage != null)
+        {
+            fillImage.fillAmount = 1f;
+            fillImage.color = greenColor;
+        }
         currentTargetColor = greenColor;
+        setTextTimer(timeLeft, true);
     }
 
     public float GetTimeLeft() => timeLeft;
 
-    private void  setTextTimer(float remainingTime)
+    private void UpdateFillAmount(float normalized)
     {
-        int minutes = (int)remainingTime / 60; 
-        int seconds = (int)remainingTime % 60;
-   
+        if (fillImage == null) return;
 
-        if ( seconds < 10)
+        if (smoothTime <= 0f)
         {
-            timerText.text =  minutes.ToString() + " : " + "0"+ seconds.ToString();
-
-        }
-        else
-        {
-            timerText.text = minutes.ToString() + " : " + seconds.ToString();
-
+            fillImage.fillAmount = normalized;
+            return;
         }
 
+        float maxDelta = Time.deltaTime / smoothTime;
+        fillImage.fillAmount = Mathf.MoveTowards(fillImage.fillAmount, normalized, maxDelta);
+    }
 
+    private void  setTextTimer(float remainingTime, bool force = false)
+    {
+        if (timerText == null) return;
+
+        int totalSeconds = Mathf.Max(0, Mathf.FloorToInt(remainingTime));
+        if (!force && totalSeconds == lastDisplayedSeconds) return;
+        lastDisplayedSeconds = totalSeconds;
+
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        timerText.SetText("{0} : {1:00}", minutes, seconds);
     }
  
 }
