@@ -2940,7 +2940,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1279256994
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2977,7 +2977,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.6862745}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.7294118}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4784,7 +4784,6 @@ GameObject:
   - component: {fileID: 2031182329}
   - component: {fileID: 2031182328}
   - component: {fileID: 2031182327}
-  - component: {fileID: 2031182330}
   m_Layer: 5
   m_Name: Resume
   m_TagString: Untagged
@@ -4895,31 +4894,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2031182325}
   m_CullTransparentMesh: 1
---- !u!114 &2031182330
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2031182325}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88d947acdd771d44dadb71da1b45a5d8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fillImage: {fileID: 0}
-  timerText: {fileID: 0}
-  durationSeconds: 30
-  smoothTime: 0.1
-  colorTweenTime: 0.2
-  greenColor: {r: 0, g: 1, b: 0, a: 1}
-  yellowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  redColor: {r: 1, g: 0, b: 0, a: 1}
-  yellowThreshold: 0.6
-  redThreshold: 0.3
-  onTimeUp:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &2037288200
 GameObject:
   m_ObjectHideFlags: 0
