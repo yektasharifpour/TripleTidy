@@ -124,6 +124,11 @@ public class BoardBootstrap : MonoBehaviour
         }
     }
 
+    public List<GameObject> GetItemPrefabs()
+    {
+        return itemPrefabs;
+    }
+
     private bool TryBuildSolution(
         List<(int slotIndex, Transform cell)> cellsFlat,
         int totalCells,
