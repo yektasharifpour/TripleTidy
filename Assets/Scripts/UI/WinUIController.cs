@@ -106,6 +106,6 @@ public class WinUIController : MonoBehaviour
     }
     public void restart()
     {
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(1);
     }
 }
