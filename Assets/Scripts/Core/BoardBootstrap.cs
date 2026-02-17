@@ -96,12 +96,12 @@ public class BoardBootstrap : MonoBehaviour
             var prefab = assignedPrefabByCellIndex[idx];
             if (prefab == null) continue;
 
-            var go = Instantiate(prefab, cell, false);
+            var go = Instantiate(prefab, cell,true);
 
             var rt = go.GetComponent<RectTransform>();
             if (rt != null)
             {
-                rt.anchoredPosition = Vector2.zero;
+                rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, rt.anchoredPosition.y);
                 rt.localScale = Vector3.one;
                 rt.localRotation = Quaternion.identity;
             }
