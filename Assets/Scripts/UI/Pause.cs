@@ -61,8 +61,6 @@ public class Pause : MonoBehaviour
 
         if (timer != null)
             timer.PauseTimer();
-
-        Time.timeScale = 0f;
     }
 
     private void OnResumePressed()
@@ -75,13 +73,10 @@ public class Pause : MonoBehaviour
 
         if (timer != null && timer.GetTimeLeft() > 0f)
             timer.StartTimer();
-
-        Time.timeScale = 1f;
     }
 
     private void OnMenuPressed()
     {
-        Time.timeScale = 1f;
         SceneManager.LoadScene(0);
     }
 }
