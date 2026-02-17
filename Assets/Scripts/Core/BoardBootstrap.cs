@@ -122,6 +122,10 @@ public class BoardBootstrap : MonoBehaviour
 
             slot.ArrangeItems();
         }
+
+        var autoRaycast = FindObjectOfType<AutoRaycastCells>(true);
+        if (autoRaycast != null)
+            autoRaycast.RefreshRaycastTargets();
     }
 
     public List<GameObject> GetItemPrefabs()
